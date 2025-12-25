@@ -79,6 +79,7 @@ void set_error(int num) {
 
     set_digit(num % 10, 0);
     if (num > 9) {
+        set_digit(9, 0);
         gpio_set(0, 1);
     }
 }
