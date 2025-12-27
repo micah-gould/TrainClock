@@ -9,13 +9,14 @@ export async function getDepartures(id) {
       const now = new Date()
       return (parseInt(when[0] - now.getHours())*60 + parseInt(when[1] - now.getMinutes()) - 1)
     }
-    const URL = `https://v6.db.transport.rest/stops/${id}/departures?duration=30`
+    const URL = `https://v6.db.transport.rest/stops/${id}/departures?duration=99`
     const response = await fetch(URL)
     const departures = (await response?.json() ?? [-1, -1])?.departures?.filter(filter) ?? [-1, -1]
 
     const nextTime = getTime(departures[0] ?? -1)
     return nextTime > 0 ? nextTime : getTime(departures[1] ?? -1)
   } catch (e) {
+    console.log(e)
     return -1
   }
 }
