@@ -9,7 +9,7 @@ export async function getDepartures(id) {
       const now = new Date()
       return (parseInt(when[0] - now.getHours())*60 + parseInt(when[1] - now.getMinutes()) - 1)
     }
-    const URL = `https://v6.db.transport.rest/stops/${id}/departures?duration=99`
+    const URL = `https://v6.db.transport.rest/stops/${id}/departures?results=2`
     const response = await fetch(URL)
     const departures = (await response?.json() ?? [-1, -1])?.departures?.filter(filter) ?? [-1, -1]
 
