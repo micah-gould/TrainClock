@@ -21,4 +21,4 @@ export async function getDepartures(id) {
   }
 }
 
-console.log (await getDepartures(process.argv.slice(2)[0]) ?? 653379)
+//console.log (await getDepartures(process.argv.slice(2)[0]) ?? 653379)

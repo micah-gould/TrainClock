@@ -14,13 +14,16 @@ async function updateTime() {
   latestTime = time
 }
 
-setInterval(updateTime, 15000)
-updateTime()
+async function startServer() {
+  await updateTime()
+  setInterval(updateTime, 15000)
+  app.listen(8159, () => {
+    console.log("server running on port 8159")
+  })
+}
+
+startServer()
 
 app.get("/nextTrain", (req, res) => {
   res.json({ nextTrainInMinutes: latestTime})
-})
-
-app.listen(8159, () => {
-  console.log("server running on port 8159")
 })
