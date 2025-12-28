@@ -1,15 +1,16 @@
 import fetch from "node-fetch"
 
-export async function getDepartures(id) {
+export async function getDepartures(stopID, directionID) {
   try {
-    id = id ?? 653379  
+    stopID = stopID ?? 653379 
+    directionID = directionID ?? 653647 
     const filter = a => a.stop.location.latitude === 51.312882
     const getTime = departure => {
       const when = (departure.when || departure.plannedWhen)?.slice(11, -6)?.split(":") ?? new Date()
       const now = new Date()
       return (parseInt(when[0] - now.getHours())*60 + parseInt(when[1] - now.getMinutes()) - 1)
     }
-    const URL = `https://v6.db.transport.rest/stops/${id}/departures?duration=99`
+    const URL = `https://v6.db.transport.rest/stops/${stopID}/departures?results=2&direction=${directionID}`
     const response = await fetch(URL)
     const departures = (await response?.json() ?? [-1, -1])?.departures?.filter(filter) ?? [-1, -1]
 
@@ -21,4 +22,4 @@ export async function getDepartures(id) {
   }
 }
 
-//console.log (await getDepartures(process.argv.slice(2)[0]) ?? 653379)
+//console.log (await getDepartures(process.argv.slice(2)[0]) ?? 653379, process.argv.slice(2)[1] ?? 653647)

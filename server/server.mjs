@@ -7,10 +7,11 @@ const app = express()
 app.use(cors())
 
 let latestTime = null
-const id = 653379
+const stopID = 653379
+const directionID = 653647
 
 async function updateTime() {
-  const time = await getDepartures(id)
+  const time = await getDepartures(stopID, directionID)
   latestTime = time
 }
 
