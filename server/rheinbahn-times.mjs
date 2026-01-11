@@ -4,10 +4,8 @@ const DEFAULT_STOP_ID = 653379
 const DEFAULT_DIRECTION_ID = 653647
 const DEFAULT_LATITUDE = 51.312882
 
-export async function getDepartures (stopID, directionID, count = 0) {
+export async function getDepartures (stopID = DEFAULT_STOP_ID, directionID = DEFAULT_DIRECTION_ID, count = 0) {
   try {
-    stopID = stopID ?? DEFAULT_STOP_ID
-    directionID = directionID ?? DEFAULT_DIRECTION_ID
     const filter = a => a.stop.location.latitude === DEFAULT_LATITUDE
     const getTime = departure => {
       const when = (departure.when || departure.plannedWhen)?.slice(11, -6)?.split(':') ?? new Date()
@@ -28,4 +26,10 @@ export async function getDepartures (stopID, directionID, count = 0) {
   }
 }
 
-console.log(await getDepartures(process.argv.slice(2)[0] ?? 653379, process.argv.slice(2)[1] ?? 653647))
+async function Main() {
+  console.log(await getDepartures(process.argv.slice(2)[0] ?? DEFAULT_STOP_ID, process.argv.slice(2)[1] ?? DEFAULT_DIRECTION_ID))
+}
+
+if (require.main == module) {
+  Main()
+}
