@@ -78,10 +78,7 @@ void set_error(int num) {
     }
 
     set_digit(num % 10, 0);
-    if (num > 9) {
-        set_digit(9, 0);
-        gpio_set(0, 1);
-    }
+    gpio_set(0, 1);
 }
 
 // ---------- HTTP GET using Pico W (async) ----------
@@ -167,12 +164,12 @@ int getNextTime() {
     auto depJson = nlohmann::json::parse(resp.body, nullptr, false);
     if (depJson.is_discarded()) {
         std::cout << "JSON parsing error" << std::endl;
-        return -1;
+        return -2;
     }
 
     if (!depJson.contains("nextTrainInMinutes") || depJson["nextTrainInMinutes"].is_null()) {
         std::cout << "JSON missing nextTrainInMinutes" << std::endl;
-        return -1;
+        return -3;
     }
 
     int nextTime = depJson["nextTrainInMinutes"];
@@ -191,7 +188,6 @@ int main() {
     if (cyw43_arch_init_with_country(CYW43_COUNTRY_GERMANY)) {
         std::cout << "Wi-Fi init failed" << std::endl;
         set_error(0);
-        gpio_set(0, 1);
         for (int i = 0; i < 100; i++) {
             cyw43_arch_gpio_put(0, 1);
             sleep_ms(50);
@@ -215,7 +211,6 @@ int main() {
     if (cyw43_arch_wifi_connect_timeout_ms(SSID, PASS, CYW43_AUTH_WPA2_AES_PSK, 10000)) {
         std::cout << "Failed to connect" << std::endl;
         set_error(1);
-        gpio_set(0, 1);
         for (int i = 0; i < 50; i++) {
             cyw43_arch_gpio_put(0, 1);
             sleep_ms(100);
@@ -234,12 +229,17 @@ int main() {
 
     int time = 0;
     int newTime = 0;
+    int counter = 0;
+    int errorCode;
     while (true) {
+        std::cout << (time, newTime, counter, errorCode) << std::endl;
+        counter++;
         gpio_set(8, 1);
-        newTime = getNextTime();
+        newTime = getNextTime() % 100;
         gpio_set(8, 0);
-        if (0 < newTime && newTime < 100) {
+        if (0 < newTime) {
             time = newTime;
+            counter = 0;
             overwrite_set_number(time);
             for (int i = 0; i < 15; i++) {
                 gpio_set(0, 1);
@@ -247,9 +247,15 @@ int main() {
                 gpio_set(0, 0);
                 sleep_ms(500);
             }
-        } else {
-            set_error(time);
-            sleep_ms(5000);
+            continue;
+        }
+        errorCode = 1 - newTime;
+        sleep_ms(5000);
+        if (counter % 12 == 0 && time > 0) {
+            time--;
+        }
+        if (time == 0) {
+            set_error(errorCode);
         }
     }
 
