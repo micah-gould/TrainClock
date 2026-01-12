@@ -253,6 +253,7 @@ int main() {
         sleep_ms(5000);
         if (counter % 12 == 0 && time > 0) {
             time--;
+            overwrite_set_number(time);
         }
         if (time == 0) {
             set_error(errorCode);
