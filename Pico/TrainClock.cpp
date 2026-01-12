@@ -113,7 +113,6 @@ bool http_get_sync(const std::string &url, HttpResponse &resp) {
     httpc_state_t* conn = nullptr;
     err_t err = httpc_get_file_dns(url.c_str(), HTTP_DEFAULT_PORT, "/", &settings, http_body_cb, &resp, &conn);
     if (err != ERR_OK) {
-        std::cout << "HTTP request failed: " << err << std::endl;
         return false;
     }
 
@@ -128,8 +127,6 @@ bool http_get_sync(const std::string &url, HttpResponse &resp) {
 
 // ---------- Get departures ----------
 int getNextTime() {
-    std::cout << "Getting next departure time from local server" << std::endl;
-
     HttpResponse resp;
     resp.body.clear(); 
     resp.done = false;
@@ -147,7 +144,6 @@ int getNextTime() {
     err_t err = httpc_get_file_dns(host, port, path, &settings, http_body_cb, &resp, &conn);
 
     if (err != ERR_OK) {
-        std::cout << "HTTP request failed: " << err << std::endl;
         return -1;
     }
 
@@ -157,23 +153,17 @@ int getNextTime() {
         sleep_ms(10);
     }
 
-    // Debug: raw response
-    std::cout << "Response raw: " << resp.body << std::endl;
-
     // Exception-free JSON parse
     auto depJson = nlohmann::json::parse(resp.body, nullptr, false);
     if (depJson.is_discarded()) {
-        std::cout << "JSON parsing error" << std::endl;
         return -2;
     }
 
     if (!depJson.contains("nextTrainInMinutes") || depJson["nextTrainInMinutes"].is_null()) {
-        std::cout << "JSON missing nextTrainInMinutes" << std::endl;
         return -3;
     }
 
     int nextTime = depJson["nextTrainInMinutes"];
-    std::cout << "Next train in " << nextTime << " minutes" << std::endl;
     return nextTime;
 }
 
@@ -186,7 +176,6 @@ int main() {
 
     // Initialise the Wi-Fi chip
     if (cyw43_arch_init_with_country(CYW43_COUNTRY_GERMANY)) {
-        std::cout << "Wi-Fi init failed" << std::endl;
         set_error(0);
         for (int i = 0; i < 100; i++) {
             cyw43_arch_gpio_put(0, 1);
@@ -203,13 +192,10 @@ int main() {
         cyw43_arch_gpio_put(0, 0);
         sleep_ms(250);
     }
-
-    std::cout << "Initialized" << std::endl;
     
     cyw43_arch_enable_sta_mode();
 
     if (cyw43_arch_wifi_connect_timeout_ms(SSID, PASS, CYW43_AUTH_WPA2_AES_PSK, 10000)) {
-        std::cout << "Failed to connect" << std::endl;
         set_error(1);
         for (int i = 0; i < 50; i++) {
             cyw43_arch_gpio_put(0, 1);
@@ -225,14 +211,11 @@ int main() {
     cyw43_arch_gpio_put(0, 0);
     sleep_ms(500);
 
-    std::cout << "Connected" << std::endl;
-
     int time = 0;
     int newTime = 0;
     int counter = 0;
     int errorCode;
     while (true) {
-        std::cout << (time, newTime, counter, errorCode) << std::endl;
         counter++;
         gpio_set(8, 1);
         newTime = getNextTime() % 100;
@@ -251,7 +234,7 @@ int main() {
         }
         errorCode = 1 - newTime;
         sleep_ms(5000);
-        if (counter % 12 == 0 && time > 0) {
+        if (counter % 11 == 0 && time > 0) {
             time--;
             overwrite_set_number(time);
         }
@@ -259,6 +242,4 @@ int main() {
             set_error(errorCode);
         }
     }
-
-    std::cout << "Error" << std::endl;
 }
