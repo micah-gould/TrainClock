@@ -1,2 +1,4 @@
 *.mjs linguist-language=JavaScript linguist-detectable=true
+*.mjs linguist-vendored=false
+*.mjs linguist-generated=false
 server/*.mjs linguist-language=JavaScript linguist-detectable=true
