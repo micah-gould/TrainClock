@@ -29,7 +29,6 @@ void gpio_set(int pin, bool state) {
 }
 
 // ---------- Number helpers ----------
-
 void set_digit(int num, int display) {
     int PinMap[10][8] = {
         {0,0,1,1,1,1,1,1},
