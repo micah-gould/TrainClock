@@ -39,6 +39,22 @@ trainclock start
 ```
 
 The server will begin running and providing train times to your display.
+They will also be avalible at `localhost:8159/nextTrain`
+
+#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 View the Server's Live Logs
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run:
+```bash
+trainclock log
+```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This will tail the log file from the server.
+
+#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 Stop The Server
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run:
+```bash
+trainclock stop
+```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This will kill the server.
 
 ### 4. Optional: Configure a Specific Platform
 
