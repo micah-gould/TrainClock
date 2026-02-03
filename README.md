@@ -1,23 +1,77 @@
-To set up:
-  Copy 'trainclock' to your path and set it to executable
-  Run 'trainclock initialize' to setup the server for yourself
-  Run 'trainclock start' to start the server
+# TrainClock 🕒
 
-If you only want times from a spesific platform, find the lattitude of the platform and set it.
+TrainClock is a simple tool to display train arrival times on a microcontroller display. It fetches data from your favorite train platform and shows the next train times directly on your device.
 
-When you wire your own pico, you might have to change the PinMap to get the displays to show the currect numbers.
+## Features
 
-Dont forget to set your WiFi name and Password in the config.h file.
+* Displays next train arrival times
+* Works with any supported microcontroller (like Raspberry Pi Pico)
+* Configurable for a specific platform
+* WiFi-enabled for live updates
 
-Error codes:
+## Getting Started
 
-0 - Faliue to Initialize
+### 1. Install the Executable
 
-1 - Faliure to connect to WiFi
+Copy `trainclock` to your system PATH and make it executable:
 
-2 - Error with API
+```bash
+cp trainclock /usr/local/bin/
+chmod +x /usr/local/bin/trainclock
+```
 
-3 - Error with the server (Nothing present)
+### 2. Initialize the Server
 
-4 - Error with the server (Data avalible, but missing "nextTrainInMinutes")
+Set up the server for your device:
 
+```bash
+trainclock initialize
+```
+
+This will configure everything needed to start fetching train data.
+
+### 3. Start the Server
+
+Once initialized, start the server:
+
+```bash
+trainclock start
+```
+
+The server will begin running and providing train times to your display.
+
+### 4. Optional: Configure a Specific Platform
+
+If you only want train times from a specific platform:
+
+1. Find the **latitude** of the platform.
+2. Set it in the .env file
+
+This ensures you only see times relevant to your chosen platform.
+
+### 5. Optional: Configure Your Microcontroller
+
+If you're using your own Raspberry Pi Pico (or other microcontroller), you may need to adjust the `PinMap` to ensure the display shows the correct numbers.
+
+Check the `PinMap` in the code and update according to your wiring.
+
+### 6. WiFi Configuration
+
+Set your WiFi credentials in the `config.h` file:
+
+```c
+#define WIFI_SSID "YourWiFiName"
+#define WIFI_PASSWORD "YourWiFiPassword"
+```
+
+This allows your device to connect to the internet and fetch live train times.
+
+## Pico Error Codes
+
+| Code | Description                                                          |
+| ---- | -------------------------------------------------------------------- |
+| 0    | Failure to initialize                                                |
+| 1    | Failure to connect to WiFi                                           |
+| 2    | Error with API                                                       |
+| 3    | Error with server (No data present)                                  |
+| 4    | Error with server (Data available, but missing `nextTrainInMinutes`) |
