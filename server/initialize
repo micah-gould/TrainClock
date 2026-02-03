@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 API_BASE="https://v6.db.transport.rest"
-ENV_FILE="../.env"
+SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="$PARENT_DIR/.env"
 
 # Ensure .env exists
 if [[ -s "$ENV_FILE" ]]; then
@@ -9,8 +12,7 @@ if [[ -s "$ENV_FILE" ]]; then
 	if [[ "$flag" = "n" ]]; then
 		exit 0
 	fi
-	rm "$ENV_FILE"
-	touch "$ENV_FILE"
+	echo "" > "$ENV_FILE"
 fi
 
 # Resolve a stop name or ID to an ID

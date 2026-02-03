@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     bat \
     bash \
     curl \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # bat symlink (same as your example)
