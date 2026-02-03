@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+SERVER_DIR="$HOME/TrainClock/server"
+LOG="$SERVER_DIR/server.log"
+SERVER="$SERVER_DIR/server.mjs"
+NODE="$(which node)"
+
+case "$1" in
+  start)
+    "$0" stop
+    nohup "$NODE" "$SERVER" > "$LOG" 2>&1 &
+    echo "Started the server"
+    ;;
+  stop)
+    pkill -f "$SERVER" >/dev/null 2>&1
+    echo "Stoped the server"
+    ;;
+  log)
+    tail -f "$LOG"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|log}"
+    exit 1
+    ;;
+esac
