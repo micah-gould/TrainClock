@@ -1,8 +1,9 @@
 import express from 'express'
 import cors from 'cors'
+import dotenv from 'dotenv'
 import { getDepartures } from './rheinbahn-times.js'
 
-process.loadEnvFile('../.env')
+dotenv.config({ path: '../.env' })
 
 const app = express()
 

@@ -23,7 +23,7 @@ export async function getDepartures(
 
     if (lattitude) {
       departures = departures.filter(
-        d => Math.abs(d.stop.location.latitude - DEFAULT_LATITUDE) < 0.00001
+        d => Math.abs(d.stop.location.latitude - lattitude) < 0.00001
       )
     }
 
@@ -33,8 +33,8 @@ export async function getDepartures(
       return Math.round((date - Date.now()) / 60000)
     }
 
-    const next = getTime(filtered[0])
-    return next > 0 ? next : getTime(filtered[1])
+    const next = getTime(departures[0])
+    return next > 0 ? next : getTime(departures[1])
 
   } catch (e) {
     console.error(e)
