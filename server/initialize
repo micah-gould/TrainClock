@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+API_BASE="https://v6.db.transport.rest"
+ENV_FILE=".env"
+
+# Ensure .env exists
+touch "$ENV_FILE"
+
+# Resolve a stop name or ID to an ID
+resolve_stop_id() {
+  local input="$1"
+
+  # ID shortcut
+  if [[ "$input" =~ ^[0-9]+$ ]]; then
+    echo "$input"
+    return
+  fi
+
+  local limit=5
+  local step=5
+
+  while true; do
+    echo "Searching for stop: $input (showing $limit results)" >&2
+
+    local response
+    response=$(curl -sG \
+      --data-urlencode "query=$input" \
+      --data-urlencode "results=$limit" \
+      --data-urlencode "type=stop" \
+      "$API_BASE/locations")
+
+    local count
+    count=$(echo "$response" | jq 'length')
+
+    if [[ "$count" -eq 0 ]]; then
+      echo "❌ No stops found for \"$input\"" >&2
+      exit 1
+    fi
+
+    # Extract arrays
+    mapfile -t STOP_IDS < <(echo "$response" | jq -r '.[].id')
+    mapfile -t STOP_NAMES < <(echo "$response" | jq -r '.[].name')
+
+    echo "Select a stop:" >&2
+
+    local options=()
+    for ((i=0; i<count && i<limit; i++)); do
+      options+=("${STOP_NAMES[$i]} — ${STOP_IDS[$i]}")
+    done
+
+    options+=("More results…")
+
+    PS3="Enter choice (1-${#options[@]}): "
+
+    select opt in "${options[@]}"; do
+      if [[ "$REPLY" -ge 1 && "$REPLY" -le "$count" ]]; then
+        echo "${STOP_IDS[$((REPLY - 1))]}"
+        return
+      elif [[ "$REPLY" -eq "${#options[@]}" ]]; then
+        limit=$((limit + step))
+        break
+      else
+        echo "Invalid selection." >&2
+      fi
+    done
+  done
+}
+
+# Write or replace key in .env
+write_env() {
+  local key="$1"
+  local value="$2"
+
+  if grep -q "^${key}=" "$ENV_FILE"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
+  else
+    echo "${key}=${value}" >> "$ENV_FILE"
+  fi
+}
+
+# ---- MAIN FLOW ----
+
+read -rp "Enter stop name or stop ID: " STOP_INPUT
+STOP_ID=$(resolve_stop_id "$STOP_INPUT")
+write_env "STOP_ID" "$STOP_ID"
+echo "✅ STOP_ID set to $STOP_ID"
+
+echo
+
+read -rp "Enter direction stop name or ID (optional, press Enter to skip): " DIR_INPUT
+
+if [[ -n "$DIR_INPUT" ]]; then
+  DIRECTION_STOP_ID=$(resolve_stop_id "$DIR_INPUT")
+  write_env "DIRECTION_STOP_ID" "$DIRECTION_STOP_ID"
+  echo "✅ DIRECTION_STOP_ID set to $DIRECTION_STOP_ID"
+else
+  echo "ℹ️ No direction stop provided"
+fi
+
+echo
+echo "📄 Updated $ENV_FILE:"
+cat "$ENV_FILE"
+
