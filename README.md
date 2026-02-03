@@ -14,7 +14,7 @@ Error codes:
 
 2 - Error with API
 
-3 - Error with the NUC (Nothing present at the server)
+3 - Error with the server (Nothing present)
 
-4 - Error with the NUC (Data avalible at the server, but missing "nextTrainInMinutes"
+4 - Error with the server (Data avalible, but missing "nextTrainInMinutes")
 

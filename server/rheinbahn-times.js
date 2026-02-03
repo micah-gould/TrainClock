@@ -1,26 +1,31 @@
 import fetch from 'node-fetch'
 
-const DEFAULT_STOP_ID = 653379
-const DEFAULT_DIRECTION_ID = 653647
-const DEFAULT_LATITUDE = 51.312882
-
 const delay = ms => new Promise(r => setTimeout(r, ms))
 
 export async function getDepartures(
-  stopID = DEFAULT_STOP_ID,
-  directionID = DEFAULT_DIRECTION_ID,
+  stopID,
+  directionID,
+  lattitude, 
   count = 0
 ) {
+  if (!stopID) {
+    throw new TypeError('Missing field stopID')
+  }
   try {
-    const URL = `https://v6.db.transport.rest/stops/${stopID}/departures?results=2&direction=${directionID}`
+    const URL = `https://v6.db.transport.rest/stops/${stopID}/departures?results=2`
+    if (directionID) {
+      directionID += `&direction=${directionID}`
+    }
     const response = await fetch(URL)
     const json = await response.json()
 
-    const departures = json?.departures ?? []
+    let departures = json?.departures ?? []
 
-    const filtered = departures.filter(
-      d => Math.abs(d.stop.location.latitude - DEFAULT_LATITUDE) < 0.00001
-    )
+    if (lattitude) {
+      departures = departures.filter(
+        d => Math.abs(d.stop.location.latitude - DEFAULT_LATITUDE) < 0.00001
+      )
+    }
 
     const getTime = departure => {
       if (!departure?.when && !departure?.plannedWhen) return -1
