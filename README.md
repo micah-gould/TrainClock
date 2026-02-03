@@ -1,4 +1,7 @@
-To use at your own stop use the correct stop id and set it.
+To set up:
+  Copy 'trainclock' to your path and set it to executable
+  Run 'trainclock initialize' to setup the server for yourself
+  Run 'trainclock start' to start the server
 
 If you only want times from a spesific platform, find the lattitude of the platform and set it.
 
