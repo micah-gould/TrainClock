@@ -8,7 +8,7 @@ ENV_FILE="$PARENT_DIR/.env"
 
 # Ensure .env exists
 if [[ -s "$ENV_FILE" ]]; then
-	read -rp "Overwrite file? (Y/n)" flag
+	read -rp "Overwrite .env file? (Y/n)" flag
 	if [[ "$flag" = "n" ]]; then
 		exit 0
 	fi

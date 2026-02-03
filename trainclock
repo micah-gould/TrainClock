@@ -18,8 +18,11 @@ case "$1" in
   log)
     tail -f "$LOG"
     ;;
+  initialize)
+    "$SERVER_DIR"/initialize
+    ;;
   *)
-    echo "Usage: $0 {start|stop|log}"
+    echo "Usage: $0 {start|stop|log|initialize}"
     exit 1
     ;;
 esac
