@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 
 API_BASE="https://v6.db.transport.rest"
-ENV_FILE=".env"
+ENV_FILE="../.env"
 
 # Ensure .env exists
-touch "$ENV_FILE"
+if [[ -s "$ENV_FILE" ]]; then
+	read -rp "Overwrite file? (Y/n)" flag
+	if [[ "$flag" = "n" ]]; then
+		exit 0
+	fi
+	rm "$ENV_FILE"
+	touch "$ENV_FILE"
+fi
 
 # Resolve a stop name or ID to an ID
 resolve_stop_id() {
@@ -16,53 +23,77 @@ resolve_stop_id() {
     return
   fi
 
-  local limit=5
-  local step=5
+  echo "Searching for stop: $input" >&2
+
+  local response
+  response=$(curl -sG \
+    --data-urlencode "query=$input" \
+    --data-urlencode "results=50" \
+    --data-urlencode "type=stop" \
+    "$API_BASE/locations")
+
+  local total
+  total=$(echo "$response" | jq 'length')
+
+  if [[ "$total" -eq 0 ]]; then
+    echo "❌ No stops found for \"$input\"" >&2
+    exit 1
+  fi
+
+  mapfile -t STOP_IDS < <(echo "$response" | jq -r '.[].id')
+  mapfile -t STOP_LABELS < <(
+    echo "$response" | jq -r '.[] | "\(.name) — \(.id)"'
+  )
+
+  local page=0
+  local page_size=5
+  local max_page=$(( (total - 1) / page_size ))
 
   while true; do
-    echo "Searching for stop: $input (showing $limit results)" >&2
+    # Clear screen safely
+    printf "\033c" >&2
 
-    local response
-    response=$(curl -sG \
-      --data-urlencode "query=$input" \
-      --data-urlencode "results=$limit" \
-      --data-urlencode "type=stop" \
-      "$API_BASE/locations")
+    local start=$((page * page_size))
+    local end=$((start + page_size))
 
-    local count
-    count=$(echo "$response" | jq 'length')
+    {
+      echo "Select a stop (results $((start + 1))–$((end < total ? end : total)) of $total)"
+      echo
+      for ((i=start; i<end && i<total; i++)); do
+        printf "%d) %s\n" "$((i - start + 1))" "${STOP_LABELS[$i]}"
+      done
+      echo
+      [[ "$page" -lt "$max_page" ]] && echo "n) Next page"
+      [[ "$page" -gt 0 ]] && echo "p) Previous page"
+      echo "q) Cancel"
+      echo
+    } >&2
 
-    if [[ "$count" -eq 0 ]]; then
-      echo "❌ No stops found for \"$input\"" >&2
-      exit 1
-    fi
+    read -rp "Choice: " choice
 
-    # Extract arrays
-    mapfile -t STOP_IDS < <(echo "$response" | jq -r '.[].id')
-    mapfile -t STOP_NAMES < <(echo "$response" | jq -r '.[].name')
-
-    echo "Select a stop:" >&2
-
-    local options=()
-    for ((i=0; i<count && i<limit; i++)); do
-      options+=("${STOP_NAMES[$i]} — ${STOP_IDS[$i]}")
-    done
-
-    options+=("More results…")
-
-    PS3="Enter choice (1-${#options[@]}): "
-
-    select opt in "${options[@]}"; do
-      if [[ "$REPLY" -ge 1 && "$REPLY" -le "$count" ]]; then
-        echo "${STOP_IDS[$((REPLY - 1))]}"
-        return
-      elif [[ "$REPLY" -eq "${#options[@]}" ]]; then
-        limit=$((limit + step))
-        break
-      else
-        echo "Invalid selection." >&2
-      fi
-    done
+    case "$choice" in
+      [1-5])
+        local index=$((start + choice - 1))
+        if [[ "$index" -lt "$total" ]]; then
+          echo "${STOP_IDS[$index]}"
+          return
+        fi
+        ;;
+      n)
+        [[ "$page" -lt "$max_page" ]] && ((page++))
+        ;;
+      p)
+        [[ "$page" -gt 0 ]] && ((page--))
+        ;;
+      q)
+        echo "Cancelled." >&2
+        exit 1
+        ;;
+      *)
+        echo "Invalid choice." >&2
+        sleep 1
+        ;;
+    esac
   done
 }
 
