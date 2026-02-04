@@ -2,7 +2,7 @@
 
 SERVER_DIR="$HOME/TrainClock/server"
 LOG="$SERVER_DIR/server.log"
-SERVER="$SERVER_DIR/server.mjs"
+SERVER="$SERVER_DIR/server.js"
 NODE="$(which node)"
 
 case "$1" in
