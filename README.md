@@ -11,13 +11,21 @@ TrainClock is a simple tool to display train arrival times on a microcontroller 
 
 ## Getting Started
 
-### 1. Install the Executable
+### 1. Install the Executable (NOTE: This installation assumes that you have the git repo located at `$HOME`. If this is not the case, please edit the `trainclock` and `trainclock.service` files in the correct places.
 
 Copy `trainclock` to your system PATH and make it executable:
 
 ```bash
 cp trainclock /usr/local/bin/
 chmod +x /usr/local/bin/trainclock
+```
+
+Edit `trainclock.service` to have the correct username in `User=` (run `whoami` to check your username)
+
+Copy `trainclock.service` to your systemd and enable it:
+```bash
+sudo cp trainclock.service /etc/systemd/system/trainclock.service
+sudo systemctl daemon-reload
 ```
 
 ### 2. Initialize the Server
@@ -41,7 +49,15 @@ trainclock start
 The server will begin running and providing train times to your display.
 They will also be avalible at `localhost:8159/nextTrain`
 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 View the Server's Live Logs
+#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.1 Check status of the service
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run:
+```bash
+trainclock status
+```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This will show the status of the API service
+
+#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 View the Server's Live Logs
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run:
 ```bash
@@ -49,7 +65,7 @@ trainclock log
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This will tail the log file from the server.
 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.2 Stop The Server
+#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.3 Stop The Server
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Run:
 ```bash
 trainclock stop

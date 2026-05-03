@@ -27,6 +27,7 @@ resolve_stop_id() {
 
   echo "Searching for stop: $input" >&2
 
+  echo "$API_BASE/locations?query=$input&results=50&type-stop"
   local response
   response=$(curl -sG \
     --data-urlencode "query=$input" \

@@ -16,6 +16,7 @@ export async function getDepartures(
     if (directionID) {
       directionID += `&direction=${directionID}`
     }
+    console.log(URL)
     const response = await fetch(URL)
     const json = await response.json()
 

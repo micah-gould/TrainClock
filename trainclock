@@ -2,18 +2,20 @@
 
 SERVER_DIR="$HOME/TrainClock/server"
 LOG="$SERVER_DIR/server.log"
-SERVER="$SERVER_DIR/server.js"
-NODE="$(which node)"
+SERVICE="trainclock.service"
 
 case "$1" in
   start)
     "$0" stop
-    nohup "$NODE" "$SERVER" > "$LOG" 2>&1 &
+    sudo systemctl start "$SERVICE"
     echo "Started the server"
     ;;
   stop)
-    pkill -f "$SERVER" >/dev/null 2>&1
+    sudo systemctl stop "$SERVICE"
     echo "Stoped the server"
+    ;;
+  status)
+    sudo systemctl status "$SERVICE"
     ;;
   log)
     tail -f "$LOG"
@@ -22,7 +24,7 @@ case "$1" in
     "$SERVER_DIR"/initialize
     ;;
   *)
-    echo "Usage: $0 {start|stop|log|initialize}"
+    echo "Usage: $0 {start|stop|status|log|initialize}"
     exit 1
     ;;
 esac
