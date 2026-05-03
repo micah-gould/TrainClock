@@ -1,64 +1,41 @@
 #!/usr/bin/env bash
-
 API_BASE="https://v6.db.transport.rest"
 SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 ENV_FILE="$PARENT_DIR/.env"
 
-# Ensure .env exists
-if [[ -s "$ENV_FILE" ]]; then
-	read -rp "Overwrite .env file? (Y/n)" flag
-	if [[ "$flag" = "n" ]]; then
-		exit 0
-	fi
-	echo "" > "$ENV_FILE"
-fi
-
 # Resolve a stop name or ID to an ID
 resolve_stop_id() {
   local input="$1"
-
-  # ID shortcut
   if [[ "$input" =~ ^[0-9]+$ ]]; then
     echo "$input"
     return
   fi
-
   echo "Searching for stop: $input" >&2
-
-  echo "$API_BASE/locations?query=$input&results=50&type-stop"
   local response
   response=$(curl -sG \
     --data-urlencode "query=$input" \
     --data-urlencode "results=50" \
     --data-urlencode "type=stop" \
     "$API_BASE/locations")
-
   local total
   total=$(echo "$response" | jq 'length')
-
   if [[ "$total" -eq 0 ]]; then
     echo "❌ No stops found for \"$input\"" >&2
     exit 1
   fi
-
   mapfile -t STOP_IDS < <(echo "$response" | jq -r '.[].id')
   mapfile -t STOP_LABELS < <(
     echo "$response" | jq -r '.[] | "\(.name) — \(.id)"'
   )
-
   local page=0
   local page_size=5
   local max_page=$(( (total - 1) / page_size ))
-
   while true; do
-    # Clear screen safely
     printf "\033c" >&2
-
     local start=$((page * page_size))
     local end=$((start + page_size))
-
     {
       echo "Select a stop (results $((start + 1))–$((end < total ? end : total)) of $total)"
       echo
@@ -71,9 +48,7 @@ resolve_stop_id() {
       echo "q) Cancel"
       echo
     } >&2
-
     read -rp "Choice: " choice
-
     case "$choice" in
       [1-5])
         local index=$((start + choice - 1))
@@ -82,20 +57,10 @@ resolve_stop_id() {
           return
         fi
         ;;
-      n)
-        [[ "$page" -lt "$max_page" ]] && ((page++))
-        ;;
-      p)
-        [[ "$page" -gt 0 ]] && ((page--))
-        ;;
-      q)
-        echo "Cancelled." >&2
-        exit 1
-        ;;
-      *)
-        echo "Invalid choice." >&2
-        sleep 1
-        ;;
+      n) [[ "$page" -lt "$max_page" ]] && ((page++)) ;;
+      p) [[ "$page" -gt 0 ]] && ((page--)) ;;
+      q) echo "Cancelled." >&2; exit 1 ;;
+      *) echo "Invalid choice." >&2; sleep 1 ;;
     esac
   done
 }
@@ -104,7 +69,6 @@ resolve_stop_id() {
 write_env() {
   local key="$1"
   local value="$2"
-
   if grep -q "^${key}=" "$ENV_FILE"; then
     sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
   else
@@ -112,26 +76,92 @@ write_env() {
   fi
 }
 
-# ---- MAIN FLOW ----
+# ---- .ENV FLOW ----
+if [[ -s "$ENV_FILE" ]]; then
+  read -rp "Overwrite .env file? (Y/n) " flag
+  if [[ "$flag" != "n" ]]; then
+    echo "" > "$ENV_FILE"
 
-read -rp "Enter stop name or stop ID: " STOP_INPUT
-STOP_ID=$(resolve_stop_id "$STOP_INPUT")
-write_env "STOP_ID" "$STOP_ID"
-echo "✅ STOP_ID set to $STOP_ID"
+    read -rp "Enter stop name or stop ID: " STOP_INPUT
+    STOP_ID=$(resolve_stop_id "$STOP_INPUT")
+    write_env "STOP_ID" "$STOP_ID"
+    echo "✅ STOP_ID set to $STOP_ID"
+    echo
 
-echo
+    read -rp "Enter direction stop name or ID (optional, press Enter to skip): " DIR_INPUT
+    if [[ -n "$DIR_INPUT" ]]; then
+      DIRECTION_STOP_ID=$(resolve_stop_id "$DIR_INPUT")
+      write_env "DIRECTION_STOP_ID" "$DIRECTION_STOP_ID"
+      echo "✅ DIRECTION_STOP_ID set to $DIRECTION_STOP_ID"
+    else
+      echo "ℹ️ No direction stop provided"
+    fi
 
-read -rp "Enter direction stop name or ID (optional, press Enter to skip): " DIR_INPUT
-
-if [[ -n "$DIR_INPUT" ]]; then
-  DIRECTION_STOP_ID=$(resolve_stop_id "$DIR_INPUT")
-  write_env "DIRECTION_STOP_ID" "$DIRECTION_STOP_ID"
-  echo "✅ DIRECTION_STOP_ID set to $DIRECTION_STOP_ID"
+    echo
+    echo "📄 Updated $ENV_FILE:"
+    cat "$ENV_FILE"
+  else
+    echo "ℹ️ Skipping .env update"
+  fi
 else
-  echo "ℹ️ No direction stop provided"
+  read -rp "Enter stop name or stop ID: " STOP_INPUT
+  STOP_ID=$(resolve_stop_id "$STOP_INPUT")
+  write_env "STOP_ID" "$STOP_ID"
+  echo "✅ STOP_ID set to $STOP_ID"
+  echo
+
+  read -rp "Enter direction stop name or ID (optional, press Enter to skip): " DIR_INPUT
+  if [[ -n "$DIR_INPUT" ]]; then
+    DIRECTION_STOP_ID=$(resolve_stop_id "$DIR_INPUT")
+    write_env "DIRECTION_STOP_ID" "$DIRECTION_STOP_ID"
+    echo "✅ DIRECTION_STOP_ID set to $DIRECTION_STOP_ID"
+  else
+    echo "ℹ️ No direction stop provided"
+  fi
+
+  echo
+  echo "📄 Updated $ENV_FILE:"
+  cat "$ENV_FILE"
+fi
+
+# ---- REPO DIR ----
+echo
+DEFAULT_BASE="$(dirname "$PARENT_DIR")"
+BASE_DIR="${BASE_INPUT:-$DEFAULT_BASE}"
+BASE_DIR="${BASE_DIR%/}"
+REPO_DIR="$BASE_DIR/TrainClock"
+
+if [[ ! -d "$REPO_DIR" ]]; then
+  echo "❌ Directory $REPO_DIR does not exist"
+  exit 1
+fi
+
+TRAINCLOCK_FILE="$REPO_DIR/trainclock"
+SERVICE_FILE="$REPO_DIR/trainclock.service"
+
+# Update trainclock script
+if [[ -f "$TRAINCLOCK_FILE" ]]; then
+  sed -i "s|SERVER_DIR=.*|SERVER_DIR=\"$REPO_DIR/server\"|" "$TRAINCLOCK_FILE"
+  echo "✅ Updated $TRAINCLOCK_FILE"
+else
+  echo "⚠️  $TRAINCLOCK_FILE not found, skipping"
+fi
+
+# Update trainclock.service
+if [[ -f "$SERVICE_FILE" ]]; then
+  sed -i "s|User=.*|User=$USER|" "$SERVICE_FILE"
+  sed -i "s|WorkingDirectory=.*|WorkingDirectory=$REPO_DIR/server|" "$SERVICE_FILE"
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/node $REPO_DIR/server/server.js|" "$SERVICE_FILE"
+  sed -i "s|StandardOutput=.*|StandardOutput=append:$REPO_DIR/server/server.log|" "$SERVICE_FILE"
+  sed -i "s|StandardError=.*|StandardError=append:$REPO_DIR/server/server.log|" "$SERVICE_FILE"
+  echo "✅ Updated $SERVICE_FILE"
+else
+  echo "⚠️  $SERVICE_FILE not found, skipping"
 fi
 
 echo
-echo "📄 Updated $ENV_FILE:"
-cat "$ENV_FILE"
-
+echo "📄 Updated $SERVICE_FILE:"
+cat "$SERVICE_FILE"
+echo
+echo "📄 Updated $TRAINCLOCK_FILE:"
+cat "$TRAINCLOCK_FILE"

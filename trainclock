@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SERVER_DIR="$HOME/TrainClock/server"
+SERVER_DIR="/home/trainclock/TrainClock/server"
 LOG="$SERVER_DIR/server.log"
 SERVICE="trainclock.service"
 

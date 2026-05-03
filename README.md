@@ -11,25 +11,7 @@ TrainClock is a simple tool to display train arrival times on a microcontroller 
 
 ## Getting Started
 
-### 1. Install the Executable 
-(NOTE: This installation assumes that you have the git repo located at `$HOME`. If this is not the case, please edit the `trainclock` and `trainclock.service` files in the correct places.)
-
-Copy `trainclock` to your system PATH and make it executable:
-
-```bash
-cp trainclock /usr/local/bin/
-chmod +x /usr/local/bin/trainclock
-```
-
-Edit `trainclock.service` to have the correct username in `User=` (run `whoami` to check your username)
-
-Copy `trainclock.service` to your systemd and enable it:
-```bash
-sudo cp trainclock.service /etc/systemd/system/trainclock.service
-sudo systemctl daemon-reload
-```
-
-### 2. Initialize the Server
+### 1. Initialize the Server
 
 Set up the server for your device:
 
@@ -38,6 +20,21 @@ trainclock initialize
 ```
 
 This will configure everything needed to start fetching train data.
+
+### 2. Install the Executable 
+
+Copy `trainclock` to your system PATH and make it executable:
+
+```bash
+cp trainclock /usr/local/bin/
+chmod +x /usr/local/bin/trainclock
+```
+
+Copy `trainclock.service` to your systemd and enable it:
+```bash
+sudo cp trainclock.service /etc/systemd/system/trainclock.service
+sudo systemctl daemon-reload
+```
 
 ### 3. Start the Server
 

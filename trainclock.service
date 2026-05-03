@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 User=trainclock
-WorkingDirectory=%h/TrainClock/server
-ExecStart=/usr/bin/node %h/TrainClock/server/server.js
-StandardOutput=append:%h/TrainClock/server/server.log
-StandardError=append:%h/TrainClock/server/server.log
+WorkingDirectory=/home/trainclock/TrainClock/server
+ExecStart=/usr/bin/node /home/trainclock/TrainClock/server/server.js
+StandardOutput=append:/home/trainclock/TrainClock/server/server.log
+StandardError=append:/home/trainclock/TrainClock/server/server.log
 Restart=on-failure
 
 [Install]
