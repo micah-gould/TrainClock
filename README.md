@@ -12,7 +12,7 @@ TrainClock is a simple tool to display train arrival times on a microcontroller 
 ## Getting Started
 
 ### 1. Install the Executable 
-(NOTE: This installation assumes that you have the git repo located at `$HOME`. If this is not the case, please edit the `trainclock` and `trainclock.service` files in the correct places.
+(NOTE: This installation assumes that you have the git repo located at `$HOME`. If this is not the case, please edit the `trainclock` and `trainclock.service` files in the correct places.)
 
 Copy `trainclock` to your system PATH and make it executable:
 
